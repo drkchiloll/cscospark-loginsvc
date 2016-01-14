@@ -14,8 +14,8 @@ const scopes = (
   `spark:messages_write spark:messages_read`
 );
 
-var sunQuery = () => {
-  return new Buffer(qs.stringify({
+var sunQuery = () => (
+  new Buffer(qs.stringify({
     isCookie: false,
     fromGlobal: 'yes',
     realm: 'consumer',
@@ -23,17 +23,16 @@ var sunQuery = () => {
     encodedParamString: 'dHlwZT1sb2dpbg==',
     gotoUrl: goToUrl(),
     email: config.user
-  })).toString('base64');
-};
+  })).toString('base64')
+);
 
-var goToUrl = () => {
-  return new Buffer(`${authUrl}?response_type=code&client_id=${config.id}`+
+var goToUrl = () => (
+  new Buffer(`${authUrl}?response_type=code&client_id=${config.id}`+
     `&redirect_uri=${encodeURIComponent(config.redirectUri)}`+
-    `&scope=${encodeURIComponent(scopes)}`).toString('base64');
-};
+    `&scope=${encodeURIComponent(scopes)}`).toString('base64')
+);
 
-// console.log(sunQuery());
-var qs = {
+var loginQS = () => ({
   IDToken0: '',
   IDToken1: config.user,
   IDToken2: config.pass,
@@ -44,35 +43,35 @@ var qs = {
   loginid: config.user,
   isAudioCaptcha: 'false',
   gx_charset: 'UTF-8'
-};
+});
 
 var idsTokForm = (code) => ({
-    security_code : code,
-    response_type: 'code',
-    client_id: config.id,
-    decision: 'accept'
+  security_code : code,
+  response_type: 'code',
+  client_id: config.id,
+  decision: 'accept'
 });
 
 var authQs = () => ({
-    response_type: 'code',
-    client_id: config.id,
-    redirect_uri: config.redirectUri,
-    service: 'webex-squared',
-    scope: scopes
+  response_type: 'code',
+  client_id: config.id,
+  redirect_uri: config.redirectUri,
+  service: 'webex-squared',
+  scope: scopes
 });
 
 var axxTokForm = (code) => ({
-    grant_type:'authorization_code',
-    client_id: config.id,
-    client_secret: config.secret,
-    code: code,
-    redirect_uri: config.redirectUri
+  grant_type:'authorization_code',
+  client_id: config.id,
+  client_secret: config.secret,
+  code: code,
+  redirect_uri: config.redirectUri
 });
 
 (() => {
   request({
     uri: initLoginUrl,
-    qs: qs,
+    qs: loginQS(),
     jar: true
   }, function(err, resp, body) {
     // console.log(body);
@@ -87,14 +86,14 @@ var axxTokForm = (code) => ({
         url: authUrl,
         jar: true,
         qs: authQs(),
-        form: idsAuthForm(tmpCode)
+        form: idsTokForm(tmpCode)
       }, (err, res, body) => {
         var code = url.parse(res.headers.location)
           .query
           .replace(/\S+=/i, '');
         request.post({
           uri: 'https://api.ciscospark.com/v1/access_token',
-          form: axxAuthForm(code),
+          form: axxTokForm(code),
         }, (err, res, body) => {
           console.log(body);
         })
