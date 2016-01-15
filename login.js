@@ -73,7 +73,7 @@ var axxTokForm = (code) => ({
     uri: initLoginUrl,
     qs: loginQS(),
     jar: true
-  }, function(err, resp, body) {
+  }, (err, resp, body) => {
     // console.log(body);
     var $ = cheerio.load(body);
     var tmpCode;
